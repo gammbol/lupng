@@ -17,12 +17,12 @@ int main(int argc, char **argv) {
   
   FILE *file = fopen(argv[1], "rb");
   if (!file) {
-    perror("LUpng file error: ");
+    perror("LUpng: ");
     return -1;
   }
 
   if (fread(header, HEADER_LEN, 1, file) == -1) {
-    perror("LUpng read error: ");
+    perror("LUpng: ");
     fclose(file);
     return -1;
   }
@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
   printf("\n");
 
   if (!isHeader(header)) {
-    fprintf(stderr, "LUPng file error: wrong file format\n");
+    fprintf(stderr, "LUPng: Wrong file format\n");
     fclose(file);
     return -1;
   }
