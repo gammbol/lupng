@@ -35,7 +35,15 @@ enum Chunks {
     IEND        // Image Trailer
 };
 
-// Checking data for being a PNG header
+// 0 - not header
+// 1 - header
+// checking if array is a png file header
 int isHeader(unsigned char* header);
+
+
+// -1 - error
+// 0 - success
+// reading a chunk of png file
+int readChunck(lupng_chunk *chunk, FILE *file); 
 
 #endif
