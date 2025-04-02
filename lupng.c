@@ -9,9 +9,9 @@ int isHeader(unsigned char* header) {
   return 1;
 }
 
-int readChunck(lupng_chunk *chunk, FILE *file) {
+int readChunk(lupng_chunk *chunk, FILE *file) {
   // reading chunk length first
-  if (fread(&chunk->length, sizeof(uint32_t), 1, file) == -1) {
+  if (fread(&(chunk->length), sizeof(uint32_t), 1, file) == -1) {
     perror("LUPng: ");
     return -1;
   }
@@ -21,18 +21,43 @@ int readChunck(lupng_chunk *chunk, FILE *file) {
   // chunkSize = chunkType + chunkData + crc
   ssize_t chunkSize = sizeof(uint32_t) * 2 + cdSize;
 
-  if (chunk->chunkLength != 0) {
+  if (chunk->length != 0) {
     chunk->chunkData = malloc(cdSize);
   }
+  printf("SIZE: %u\nlength: %d\n", sizeof(chunk->chunkData), chunk->length);
 
   // reading the rest of the chunk
-  if (fread(chunk + sizeof(uint32_t), chunkSize, 1, file) == -1) {
+  // if (fread(chunk + sizeof(uint32_t), chunkSize, 1, file) == -1) {
+  //   perror("LUPng: ");
+  //   return -1;
+  // }
+
+  if (fread(chunk + sizeof(uint32_t), sizeof(uint32_t), 1, file) == -1) {
+    perror("LUPng: ");
+    return -1;
+  }
+
+  if (fread(chunk->chunkData, sizeof(uint8_t), chunk->length, file) == -1) {
+    perror("LUPng: ");
+    return -1;
+  }
+
+  if (fread(&chunk->crc, sizeof(uint32_t), 1, file) == -1) {
     perror("LUPng: ");
     return -1;
   }
 
   return 0;
 }  
+
+void printChunk(const lupng_chunk chunk) {
+  printf("Length: %u\nType: %x\n", chunk.length, chunk.chunkType);
+  for (int i = 0; i < chunk.length; i++) {
+      printf("%02x ", chunk.chunkData[i]);
+      if (i % 20 == 0) printf("\n");
+  }
+  printf("CRC: %u\n", chunk.crc);
+}
 
 int main(int argc, char **argv) {
   if (argc != 2) {
@@ -67,6 +92,15 @@ int main(int argc, char **argv) {
     fclose(file);
     return -1;
   }
+
+  lupng_chunk chunk = {};
+  if (readChunk(&chunk, file) == -1) {
+    fprintf(stderr, "LUpng: Error while reading a chunk\n");
+    fclose(file);
+    return -1;
+  }
+
+  // printChunk(chunk);
 
   fclose(file);
   return 0;

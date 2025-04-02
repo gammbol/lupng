@@ -44,6 +44,9 @@ int isHeader(unsigned char* header);
 // -1 - error
 // 0 - success
 // reading a chunk of png file
-int readChunck(lupng_chunk *chunk, FILE *file); 
+int readChunk(lupng_chunk *chunk, FILE *file); 
+
+// debug
+void printChunk(const lupng_chunk chunk);
 
 #endif
