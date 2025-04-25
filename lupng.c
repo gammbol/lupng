@@ -24,7 +24,7 @@ int readChunk(lupng_chunk *chunk, FILE *file) {
   if (chunk->length != 0) {
     chunk->chunkData = malloc(cdSize);
   }
-  printf("SIZE: %u\nlength: %d\n", sizeof(chunk->chunkData), chunk->length);
+  printf("SIZE: %u\nlength: %08x\n", sizeof(chunk->chunkData), btol8(chunk->length));
 
   // reading the rest of the chunk
   // if (fread(chunk + sizeof(uint32_t), chunkSize, 1, file) == -1) {
