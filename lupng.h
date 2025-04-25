@@ -24,8 +24,8 @@ unsigned char header[HEADER_LEN];
 // Chunk structure
 typedef struct {
     uint32_t length;
-    uint32_t chunkType;
-    uint8_t *chunkData;
+    uint8_t type[4];
+    uint8_t *data;
     uint32_t crc;
 } lupng_chunk;
 

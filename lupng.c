@@ -5,7 +5,6 @@ int isHeader(unsigned char* header) {
     if (header[i] != headerTemplate[i])
       return 0;
   }
-  printf("got here\n");
   return 1;
 }
 
@@ -16,15 +15,17 @@ int readChunk(lupng_chunk *chunk, FILE *file) {
     return -1;
   }
 
+  // deserializing data
+  chunk->length = btol8(chunk->length);
+
   // Chunk length field
   ssize_t cdSize = chunk->length * sizeof(uint8_t);
   // chunkSize = chunkType + chunkData + crc
   ssize_t chunkSize = sizeof(uint32_t) * 2 + cdSize;
 
   if (chunk->length != 0) {
-    chunk->chunkData = malloc(cdSize);
+    chunk->data = malloc(cdSize);
   }
-  printf("SIZE: %u\nlength: %08x\n", sizeof(chunk->chunkData), btol8(chunk->length));
 
   // reading the rest of the chunk
   // if (fread(chunk + sizeof(uint32_t), chunkSize, 1, file) == -1) {
@@ -32,12 +33,12 @@ int readChunk(lupng_chunk *chunk, FILE *file) {
   //   return -1;
   // }
 
-  if (fread(chunk + sizeof(uint32_t), sizeof(uint32_t), 1, file) == -1) {
+  if (fread(chunk->type, sizeof(uint8_t), 4, file) == -1) {
     perror("LUPng: ");
     return -1;
   }
 
-  if (fread(chunk->chunkData, sizeof(uint8_t), chunk->length, file) == -1) {
+  if (fread(chunk->data, sizeof(uint8_t), chunk->length, file) == -1) {
     perror("LUPng: ");
     return -1;
   }
@@ -51,12 +52,17 @@ int readChunk(lupng_chunk *chunk, FILE *file) {
 }  
 
 void printChunk(const lupng_chunk chunk) {
-  printf("Length: %u\nType: %x\n", chunk.length, chunk.chunkType);
-  for (int i = 0; i < chunk.length; i++) {
-      printf("%02x ", chunk.chunkData[i]);
-      if (i % 20 == 0) printf("\n");
+  printf("Length: %u\n", chunk.length);
+  printf("Type: ");
+  for(int i = 0; i < 4; i++) {
+    printf("%02x ", chunk.type[i]);
   }
-  printf("CRC: %u\n", chunk.crc);
+  printf("\n");
+  for (int i = 0; i < chunk.length; i++) {
+      printf("%02x ", chunk.data[i]);
+      if ((i+1) % 20 == 0) printf("\n");
+  }
+  printf("\nCRC: %u\n", chunk.crc);
 }
 
 int main(int argc, char **argv) {
@@ -77,16 +83,6 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  for (int i = 0; i < 8; i++) {
-    printf("%02x ", header[i]);
-  }
-  printf("\n");
-
-  for (int i = 0; i < 8; i++) {
-    printf("%02x ", headerTemplate[i]);
-  }
-  printf("\n");
-
   if (!isHeader(header)) {
     fprintf(stderr, "LUPng: Wrong file format\n");
     fclose(file);
@@ -100,7 +96,7 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  // printChunk(chunk);
+  printChunk(chunk);
 
   fclose(file);
   return 0;
